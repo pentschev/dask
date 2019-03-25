@@ -12,14 +12,14 @@ from ..highlevelgraph import HighLevelGraph
 from ..base import tokenize
 from ..compatibility import Sequence
 from . import chunk
-from .core import (Array, asarray, normalize_chunks,
+from .core import (Array, asarray, from_array, normalize_chunks,
                    stack, concatenate, block,
                    broadcast_to, broadcast_arrays)
 from .wrap import empty, ones, zeros, full
 from .utils import AxisError
 
 
-def empty_like(a, dtype=None, chunks=None):
+def empty_like(a, dtype=None, chunks=None, order=None, shape=None):
     """
     Return a new array with the same shape and type as a given array.
 
@@ -56,13 +56,14 @@ def empty_like(a, dtype=None, chunks=None):
     """
 
     a = asarray(a, name=False)
-    return empty(
-        a.shape, dtype=(dtype or a.dtype),
-        chunks=(chunks if chunks is not None else a.chunks)
-    )
+    try:
+        b = np.empty_like(a._meta, dtype=(dtype or a.dtype), shape=(shape or a.shape))
+    except ValueError:
+        b = np.empty_like(a._meta, dtype=(dtype or a.dtype), shape=(shape or a.shape), order='A')
+    return from_array(b, chunks=(chunks if chunks is not None else b.shape), asarray=False)
 
 
-def ones_like(a, dtype=None, chunks=None):
+def ones_like(a, dtype=None, chunks=None, order=None, shape=None):
     """
     Return an array of ones with the same shape and type as a given array.
 
@@ -92,13 +93,14 @@ def ones_like(a, dtype=None, chunks=None):
     """
 
     a = asarray(a, name=False)
-    return ones(
-        a.shape, dtype=(dtype or a.dtype),
-        chunks=(chunks if chunks is not None else a.chunks)
-    )
+    try:
+        b = np.ones_like(a._meta, dtype=(dtype or a.dtype), shape=(shape or a.shape))
+    except ValueError:
+        b = np.ones_like(a._meta, dtype=(dtype or a.dtype), shape=(shape or a.shape), order=order)
+    return from_array(b, chunks=(chunks if chunks is not None else b.shape), asarray=False)
 
 
-def zeros_like(a, dtype=None, chunks=None):
+def zeros_like(a, dtype=None, chunks=None, order=None, shape=None):
     """
     Return an array of zeros with the same shape and type as a given array.
 
@@ -128,13 +130,14 @@ def zeros_like(a, dtype=None, chunks=None):
     """
 
     a = asarray(a, name=False)
-    return zeros(
-        a.shape, dtype=(dtype or a.dtype),
-        chunks=(chunks if chunks is not None else a.chunks)
-    )
+    try:
+        b = np.zeros_like(a._meta, dtype=(dtype or a.dtype), shape=(shape or a.shape))
+    except ValueError:
+        b = np.zeros_like(a._meta, dtype=(dtype or a.dtype), shape=(shape or a.shape), order=order)
+    return from_array(b, chunks=(chunks if chunks is not None else b.shape), asarray=False)
 
 
-def full_like(a, fill_value, dtype=None, chunks=None):
+def full_like(a, fill_value, dtype=None, chunks=None, order=None, shape=None):
     """
     Return a full array with the same shape and type as a given array.
 
@@ -168,12 +171,11 @@ def full_like(a, fill_value, dtype=None, chunks=None):
     """
 
     a = asarray(a, name=False)
-    return full(
-        a.shape,
-        fill_value,
-        dtype=(dtype or a.dtype),
-        chunks=(chunks if chunks is not None else a.chunks)
-    )
+    try:
+        b = np.full_like(a._meta, fill_value, dtype=(dtype or a.dtype), shape=(shape or a.shape))
+    except ValueError:
+        b = np.full_like(a._meta, fill_value, dtype=(dtype or a.dtype), shape=(shape or a.shape), order=order)
+    return from_array(b, chunks=(chunks if chunks is not None else b.shape), asarray=False)
 
 
 def linspace(start, stop, num=50, endpoint=True, retstep=False, chunks='auto',
