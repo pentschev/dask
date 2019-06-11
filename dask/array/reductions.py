@@ -466,7 +466,7 @@ def moment_chunk(A, order=2, sum=chunk.sum, numel=numel, dtype='f8', meta=False,
 
     n = n.astype(np.int64)
     total = sum(A, dtype=dtype, **kwargs)
-    u = total / n
+    u = total if np.any(n == 0) else total / n
     xs = [sum((A - u)**i, dtype=dtype, **kwargs) for i in range(2, order + 1)]
     M = np.stack(xs, axis=-1)
     return {'total': total, 'n': n, 'M': M}
